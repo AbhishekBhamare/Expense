@@ -1,0 +1,12 @@
+# Ignore node_modules directories
+backend/node_modules/
+frontend/node_modules/
+
+# Ignore .env file in backend
+backend/.env
+
+# Ignore the docker-compose.yaml file (if desired)
+docker-compose.yml
+
+# Ignore SQL initialization script (if desired)
+sql/init.sql
