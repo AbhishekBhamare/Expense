@@ -29,7 +29,7 @@ export default function User() {
     try {
       setEditField(false); // Set the edit state to false
       console.log(value);
-      const response = await axios.patch('http://localhost:5000/user', { [field1]: id, [field2]: value });
+      const response = await axios.patch('/api/user', { [field1]: id, [field2]: value });
       console.log(response);
       setUserData(prev => ({ ...prev, key: { ...prev.key, [field2]: value } })); // Update userData state
     } catch (error) {
@@ -60,7 +60,7 @@ export default function User() {
    
     try {
       setShowChangePasswordModal(false); // Set the edit state to false
-      await axios.patch('http://localhost:5000/user', { 
+      await axios.patch('/api/user', { 
           id: userData.key.id,
           oldPassword: oldPassword,
           newPassword: newPassword,

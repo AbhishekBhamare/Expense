@@ -17,7 +17,7 @@ export default function Signup(props) {
       return;
     }
 
-    axios.post('http://localhost:5000/signup', {
+    axios.post('/api/signup', {
       name: name,
       username: username,
       email: email,

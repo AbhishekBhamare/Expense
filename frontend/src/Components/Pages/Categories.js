@@ -13,7 +13,7 @@ export default function Categories() {
   const saveCategory = (e) => {
     e.preventDefault();
     if(category && userData && userData.key && userData.key.id){
-      axios.post('http://localhost:5000/categories', {
+      axios.post('/api/categories', {
         id: userData.key.id,
         category: category
         

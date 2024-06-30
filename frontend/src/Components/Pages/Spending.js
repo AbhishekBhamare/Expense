@@ -44,7 +44,7 @@ export default function Spending() {
     e.preventDefault();
     // console.log(cost, category, date, description);
     if (cost && category && date && description) {
-      await axios.post('http://localhost:5000/spending', {
+      await axios.post('/api/spending', {
         id: userData.key.id,
         cost: cost,
         category: category,
@@ -95,7 +95,7 @@ export default function Spending() {
   const fetchData = useCallback(() => {
     // console.log("changes")
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/spending', {
+      axios.get('/api/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
 
@@ -146,7 +146,7 @@ export default function Spending() {
       amount: cost,
       description: description
     };
-    axios.patch('http://localhost:5000/spending', entry)
+    axios.patch('/api/spending', entry)
       .then((res) => {
         // console.log(res);
         setEditModal(false);
@@ -167,7 +167,7 @@ export default function Spending() {
   };
 
   const handleDelete = async (id) => {
-    return axios.delete('http://localhost:5000/spending', { data: { id } })
+    return axios.delete('/api/spending', { data: { id } })
       .then((res) => {
         fetchData();
         setDeleteEntry(false);
@@ -181,7 +181,7 @@ export default function Spending() {
 
   useEffect(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/categories', {
+      axios.get('/api/categories', {
         params: { id: userData.key.id },
       }).then((response) => {
         setPopulateCategories(response.data.rows);
