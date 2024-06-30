@@ -78,7 +78,7 @@ export default function Dashboard() {
   const fetchData = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
       axios
-        .get('/api/dashboard', {
+        .get('http://localhost:5000/dashboard', {
           params: { id: userData.key.id },
         })
         .then((response) => {
@@ -95,7 +95,7 @@ export default function Dashboard() {
  
   const fetchIncome = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('/api/income', {
+      axios.get('http://localhost:5000/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -190,7 +190,7 @@ export default function Dashboard() {
   const handleIncomeSubmit = async () => {
     try {
         if(!income){
-          const response = await axios.post('/api/income', {
+          const response = await axios.post('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
@@ -202,7 +202,7 @@ export default function Dashboard() {
           setShowModal(false);
         }
       }else{
-        const response = await axios.patch('/api/income', {
+        const response = await axios.patch('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {

@@ -20,7 +20,7 @@ function App() {
 
   const getUserData = useCallback(() => {
     if (id) {
-      axios.get('/api/user', {
+      axios.get('http://localhost:5000/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });

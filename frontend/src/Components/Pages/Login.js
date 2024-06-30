@@ -14,7 +14,7 @@ export default function Login(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post('/api/login', {
+    axios.post('http://localhost:5000/login', {
       email: email,
       password: password
     }).then((res) => {

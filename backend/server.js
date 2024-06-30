@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000', // Specify the frontend URL
+    origin: 'http://localhost:3000', // Specify the frontend URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable cookies to be sent across domains
     optionsSuccessStatus: 204,
@@ -110,7 +110,7 @@ cron.schedule('0 0 1 * *', () => {
 
 
 
-app.post("/api/signup", async (req, res) => {
+app.post("/signup", async (req, res) => {
     const userData = req.body;
     if (!(userData.name&&userData.username&&userData.email&&userData.password)){
         return res.status(400).send("All data fields are compulsory");
@@ -149,7 +149,7 @@ app.post("/api/signup", async (req, res) => {
 })
 
 
-app.post('/api/login', async (req, res) => {
+app.post('/login', async (req, res) => {
     await calculateRemainingBudget();
     const { email, password } = req.body;
     if(!(email && password)){
@@ -196,7 +196,7 @@ app.post('/api/login', async (req, res) => {
 })
 
 
-app.post('/api/spending', async (req, res) => {
+app.post('/spending', async (req, res) => {
     const expenseData = req.body;
 
     if(!expenseData){
@@ -221,7 +221,7 @@ app.post('/api/spending', async (req, res) => {
 });
 
 
-app.post('/api/income', async(req, res) => {
+app.post('/income', async(req, res) => {
     const val = req.body;
     // console.log("income", val);
     const client = await pool.connect();
@@ -241,7 +241,7 @@ app.post('/api/income', async(req, res) => {
     }
 })
 
-app.post('/api/budgets', async (req, res) => {
+app.post('/budgets', async (req, res) => {
     const val = req.body;
     const client = await pool.connect();
     try{
@@ -258,7 +258,7 @@ app.post('/api/budgets', async (req, res) => {
     }
 })
 
-app.post('/api/monthly_budget', async (req, res) => {
+app.post('/monthly_budget', async (req, res) => {
     const val = req.body;
     // console.log("monthlyubudget", val);
     const client = await pool.connect();
@@ -280,7 +280,7 @@ app.post('/api/monthly_budget', async (req, res) => {
 })
 
 
-app.post('/api/categories', async (req, res) => {
+app.post('/categories', async (req, res) => {
     const val = req.body;
     const client = await pool.connect();
 
@@ -306,7 +306,7 @@ app.post('/api/categories', async (req, res) => {
     }
 })
 
-app.get('/api/categories', async (req, res) => {
+app.get('/categories', async (req, res) => {
     const client = await pool.connect();
 
     try{
@@ -320,7 +320,7 @@ app.get('/api/categories', async (req, res) => {
 })
 
 
-app.get('/api/spending', async (req, res) => {
+app.get('/spending', async (req, res) => {
     // console.log("send response",req.query.id)
 
     const client = await pool.connect();
@@ -338,7 +338,7 @@ app.get('/api/spending', async (req, res) => {
 
 
 
-app.get('/api/monthly_budget', async (req, res) => {
+app.get('/monthly_budget', async (req, res) => {
     // console.log("montly budget",req.query.id)
     const client = await pool.connect();
 
@@ -355,7 +355,7 @@ app.get('/api/monthly_budget', async (req, res) => {
 });
 
 
-app.get('/api/income', async (req, res) => {
+app.get('/income', async (req, res) => {
     const client = await pool.connect();
     
     // console.log("Im in income",req.query.id);
@@ -370,7 +370,7 @@ app.get('/api/income', async (req, res) => {
     }
 })
 
-app.get('/api/budgets', async (req, res) => {
+app.get('/budgets', async (req, res) => {
     const client = await pool.connect();
     // console.log("id here",req.query.id)
 
@@ -389,11 +389,11 @@ app.get('/api/budgets', async (req, res) => {
 
 
 
-app.get('/api/login', (req, res) => {
+app.get('/login', (req, res) => {
     res.send('Hello from server');
     // console.log(req);
 })
-app.get('/api/dashboard', async (req, res) => {
+app.get('/dashboard', async (req, res) => {
     // console.log("TEMP",req.user);
     // console.log("send response",req.query.id)
 
@@ -411,7 +411,7 @@ app.get('/api/dashboard', async (req, res) => {
     }
 })
 
-app.get('/api/user', async (req, res) => {
+app.get('/user', async (req, res) => {
     // console.log("TEMP",req.query.id);   
     const client = await pool.connect();
     try{
@@ -428,7 +428,7 @@ app.get('/api/user', async (req, res) => {
 })
 
 
-app.patch('/api/spending', async (req, res) => {
+app.patch('/spending', async (req, res) => {
     // console.log('dont what is error');
     const entry = req.body
     const client = await pool.connect();
@@ -447,7 +447,7 @@ app.patch('/api/spending', async (req, res) => {
     }
 })
 
-app.patch('/api/income',async (req, res) => {
+app.patch('/income',async (req, res) => {
     const val = req.body;
     // console.log("income", val);
     const client = await pool.connect();
@@ -463,7 +463,7 @@ app.patch('/api/income',async (req, res) => {
     }
 })
 
-app.patch('/api/budget', async (req, res) => {
+app.patch('/budget', async (req, res) => {
     const val = req.body;
     console.log(val);
     const client = await pool.connect();
@@ -477,7 +477,7 @@ app.patch('/api/budget', async (req, res) => {
     }
 })
 
-app.patch('/api/user', async (req, res) => {
+app.patch('/user', async (req, res) => {
     const user = req.body;
     // console.log(user.id)
     const client = await pool.connect();
@@ -529,7 +529,7 @@ app.patch('/api/user', async (req, res) => {
 
 
 
-app.delete('/api/spending', async (req, res) => {
+app.delete('/spending', async (req, res) => {
     const id = req.body.id;
     // console.log('adsfgh',id);
     const client = await pool.connect();
@@ -544,7 +544,7 @@ app.delete('/api/spending', async (req, res) => {
 })
 
 
-app.delete('/api/budget', async (req, res) => {
+app.delete('/budget', async (req, res) => {
     const id = req.body;
     // console.log(id);
     const client = await pool.connect();
