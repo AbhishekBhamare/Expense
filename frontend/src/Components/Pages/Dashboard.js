@@ -1,14 +1,11 @@
-import React, { useContext, useCallback, useEffect, useRef } from 'react'
+import React, { useContext, useCallback, useEffect } from 'react'
 import { useState } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { getCookie } from '../Utils/getCookie';
 import Sidebar from '../UI/Sidebar';
 import Loading from '../UI/Loading';
 import { MyContext } from '../Utils/MyContext';
-import axios from 'axios';
 import AnimatedArrowButton from '../UI/AnimatedArrow';
 import LineChart from '../UI/LineChart';
-
+import axiosInstance from '../axiosConfig';
 
 import {
   Chart as ChartJS,
@@ -77,8 +74,8 @@ export default function Dashboard() {
 
   const fetchData = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios
-        .get('http://localhost:5000/dashboard', {
+      axiosInstance
+        .get('/api/dashboard', {
           params: { id: userData.key.id },
         })
         .then((response) => {
@@ -95,7 +92,7 @@ export default function Dashboard() {
  
   const fetchIncome = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/income', {
+      axiosInstance.get('/api/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -190,7 +187,7 @@ export default function Dashboard() {
   const handleIncomeSubmit = async () => {
     try {
         if(!income){
-          const response = await axios.post('http://localhost:5000/income', {
+          const response = await axiosInstance.post('/api/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
@@ -202,7 +199,7 @@ export default function Dashboard() {
           setShowModal(false);
         }
       }else{
-        const response = await axios.patch('http://localhost:5000/income', {
+        const response = await axiosInstance.patch('/api/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {

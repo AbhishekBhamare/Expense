@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom'
+import axiosInstance from '../axiosConfig';
 
 export default function Signup(props) {
   const [name, setName] = useState('');
@@ -17,7 +17,7 @@ export default function Signup(props) {
       return;
     }
 
-    axios.post('http://localhost:5000/signup', {
+    axiosInstance.post('/api/signup', {
       name: name,
       username: username,
       email: email,

@@ -33,8 +33,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: 'http://localhost:3000', // Specify the frontend URL
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Use the frontend URL from environment variables    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable cookies to be sent across domains
     optionsSuccessStatus: 204,
   };

@@ -1,8 +1,10 @@
 import React from 'react'
-import axios from 'axios';
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
+import axiosInstance from '../axiosConfig';
+
+
 export default function Login(props) {
 
   const [email, setEmail] = useState('');
@@ -14,7 +16,7 @@ export default function Login(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post('http://localhost:5000/login', {
+    axiosInstance.post('/api/login', {
       email: email,
       password: password
     }).then((res) => {

@@ -7,12 +7,11 @@ import './App.css';
 import Categories from './Components/Pages/Categories';
 import Budget from './Components/Pages/Budget'
 import User from './Components/Pages/User'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { MyContext } from './Components/Utils/MyContext';
 import { getCookie } from './Components/Utils/getCookie';
 import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
-
+import axiosInstance from './Components/axiosConfig';
 
 function App() {
   const { userData, setUserData } = useContext(MyContext);
@@ -20,7 +19,7 @@ function App() {
 
   const getUserData = useCallback(() => {
     if (id) {
-      axios.get('http://localhost:5000/user', {
+      axiosInstance.get('/api/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });

@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import Sidebar from '../UI/Sidebar'
 // import Loading from '../UI/Loading'
-import axios from 'axios'
 import { MyContext } from '../Utils/MyContext';
+import axiosInstance from '../axiosConfig';
 
 
 export default function Categories() {
@@ -13,7 +13,7 @@ export default function Categories() {
   const saveCategory = (e) => {
     e.preventDefault();
     if(category && userData && userData.key && userData.key.id){
-      axios.post('http://localhost:5000/categories', {
+      axiosInstance.post('/api/categories', {
         id: userData.key.id,
         category: category
         

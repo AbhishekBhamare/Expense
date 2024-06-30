@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { deleteCookie } from '../Utils/deleteCookie';
 import { MyContext } from '../Utils/MyContext';
 import logoDark from '../../screenshots/logo-dark.png';
-import axios from 'axios';
 import { getCookie } from '../Utils/getCookie';
 import { jwtDecode } from 'jwt-decode';
 import Loading from './Loading';
+import axiosInstance from '../axiosConfig'; 
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Sidebar() {
 
   const getUserData = useCallback(() => {
     if (id) {
-      axios.get('http://localhost:5000/user', {
+      axiosInstance.get('/api/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });

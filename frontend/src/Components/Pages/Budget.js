@@ -1,8 +1,7 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Sidebar from '../UI/Sidebar';
-import axios from 'axios';
 import { MyContext } from '../Utils/MyContext';
-import Loading from '../UI/Loading';
+import axiosInstance from '../axiosConfig';
 
 export default function Budget() {
   const date = new Date();
@@ -43,7 +42,7 @@ export default function Budget() {
 
   const fetchCategories = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/categories', {
+      axiosInstance.get('/api/categories', {
         params: { id: userData.key.id },
       }).then((response) => {
         let cat_Array = new Map();
@@ -61,7 +60,7 @@ export default function Budget() {
 
   const fetchBudgetData = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/budgets', {
+      axiosInstance.get('/api/budgets', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data];
@@ -76,7 +75,7 @@ export default function Budget() {
 
   const fetchIncome = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/income', {
+      axiosInstance.get('/api/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -92,7 +91,7 @@ export default function Budget() {
 
   const fetchExpense = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/spending', {
+      axiosInstance.get('/api/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data.rows];
@@ -124,7 +123,7 @@ export default function Budget() {
 
   const fetchTotalMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/monthly_budget', {
+      axiosInstance.get('/api/monthly_budget', {
         params: {
           id: userData.key.id,
           month: current_Month,
@@ -150,7 +149,7 @@ export default function Budget() {
 
   const AddMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.post('http://localhost:5000/monthly_budget', {
+      axiosInstance.post('/api/monthly_budget', {
         id: userData.key.id,
         income_id: incomeId,
         month: current_Month,
@@ -180,7 +179,7 @@ export default function Budget() {
     console.log(cost, category, current_Month, current_Year);
     e.preventDefault();
     if (userData && userData.key && userData.key.id) {
-      await axios.post('http://localhost:5000/budgets', {
+      await axiosInstance.post('/api/budgets', {
         id: userData.key.id,
         amount: parseInt(cost),
         category_id: category,
@@ -198,7 +197,7 @@ export default function Budget() {
 
   const handleDelete = async (id) => {
     if (userData && userData.key && userData.key.id) {
-      await axios.delete('http://localhost:5000/budget', {
+      await axiosInstance.delete('/api/budget', {
         data: {
           budget_id: id,
           user_id: userData.key.id,
@@ -212,7 +211,7 @@ export default function Budget() {
 
   const handleEditFormSubmit = async (id) => {
     if(userData && userData.key && userData.key.id){
-      await axios.patch('http://localhost:5000/budget', {
+      await axiosInstance.patch('/api/budget', {
         user_id: userData.key.id,
         amount: parseInt(editCost),
         category_id: editCategory,
