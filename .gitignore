@@ -9,4 +9,4 @@ backend/.env
 # docker-compose.yml
 
 # Ignore SQL initialization script (if desired)
-sql/init.sql
+# sql/init.sql
