@@ -20,7 +20,7 @@ services:
     command: npm start
     environment:
       - PGUSER=${PGUSER}
-      - PGPASSWORD=${PGPASSWORD}
+      # - PGPASSWORD=${PGPASSWORD}
       - PGDATABASE=${PGDATABASE}
       - PGHOST=db
       - PGPORT=${PGPORT}
