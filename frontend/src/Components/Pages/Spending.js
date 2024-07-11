@@ -48,7 +48,7 @@ export default function Spending() {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (cost && category && date) {
-      await axios.post('http://localhost:5000/spending', {
+      await axios.post('https://expense-9nyk.onrender.com/spending', {
         id: userData.key.id,
         cost: cost,
         category: category,
@@ -101,7 +101,7 @@ export default function Spending() {
 
   const fetchData = useCallback(async () => {
     if (userData && userData.key && userData.key.id) {
-      await axios.get('http://localhost:5000/spending', {
+      await axios.get('https://expense-9nyk.onrender.com/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
 
@@ -156,7 +156,7 @@ export default function Spending() {
       amount: cost,
       description: description
     };
-    await axios.patch('http://localhost:5000/spending', entry)
+    await axios.patch('https://expense-9nyk.onrender.com/spending', entry)
       .then((res) => {
         setEditModal(false);
         fetchData();
@@ -179,7 +179,7 @@ export default function Spending() {
   };
 
   const handleDelete = async (id) => {
-    return axios.delete('http://localhost:5000/spending', { data: { id } })
+    return axios.delete('https://expense-9nyk.onrender.com/spending', { data: { id } })
       .then((res) => {
         fetchData();
         setDeleteEntry(false);
@@ -195,7 +195,7 @@ export default function Spending() {
 
   useEffect(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/categories', {
+      axios.get('https://expense-9nyk.onrender.com/categories', {
         params: { id: userData.key.id },
       }).then((response) => {
         setPopulateCategories(response.data.rows);

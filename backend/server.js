@@ -12,11 +12,15 @@ dotenv.config();
 
 const { Pool } = pg;
 const pool = new Pool({
-    user: process.env.PGUSER,
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    password: process.env.PGPASSWORD,
-    port: process.env.PGPORT,
+    connectionString:`postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
+  ssl: {
+    rejectUnauthorized: false // Only needed if your database requires SSL
+  }
+    // user: process.env.PGUSER,
+    // host: process.env.PGHOST,
+    // database: process.env.PGDATABASE,
+    // password: process.env.PGPASSWORD,
+    // port: process.env.PGPORT,
 });
 
 
@@ -32,7 +36,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: 'http://localhost:3000', // Specify the frontend URL
+    origin: 'https://expense-virid.vercel.app', // Specify the frontend URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable cookies to be sent across domains
     optionsSuccessStatus: 204,

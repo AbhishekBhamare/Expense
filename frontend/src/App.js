@@ -20,7 +20,7 @@ function App() {
 
   const getUserData = useCallback(async() => {
     if (id) {
-      await axios.get('http://localhost:5000/user', {
+      await axios.get('https://expense-9nyk.onrender.com/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });

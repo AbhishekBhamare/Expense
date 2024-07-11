@@ -47,7 +47,7 @@ export default function Budget() {
 
   const fetchBudgetData = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/budgets', {
+      axios.get('https://expense-9nyk.onrender.com/budgets', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data];
@@ -64,7 +64,7 @@ export default function Budget() {
 
   const fetchCategories = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/categories', {
+      axios.get('https://expense-9nyk.onrender.com/categories', {
         params: { id: userData.key.id },
       }).then((response) => {
         let cat_Array = new Map();
@@ -83,7 +83,7 @@ export default function Budget() {
 
   const fetchIncome = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/income', {
+      axios.get('https://expense-9nyk.onrender.com/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -98,7 +98,7 @@ export default function Budget() {
 
   const fetchExpense = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/spending', {
+      axios.get('https://expense-9nyk.onrender.com/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data.rows];
@@ -130,7 +130,7 @@ export default function Budget() {
 
   const fetchTotalMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.get('http://localhost:5000/monthly_budget', {
+      axios.get('https://expense-9nyk.onrender.com/monthly_budget', {
         params: {
           id: userData.key.id,
           month: current_Month,
@@ -155,7 +155,7 @@ export default function Budget() {
 
   const AddMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axios.post('http://localhost:5000/monthly_budget', {
+      axios.post('https://expense-9nyk.onrender.com/monthly_budget', {
         id: userData.key.id,
         income_id: incomeId,
         month: current_Month,
@@ -201,7 +201,7 @@ export default function Budget() {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (cost && userData && userData.key && userData.key.id) {
-      await axios.post('http://localhost:5000/budgets', {
+      await axios.post('https://expense-9nyk.onrender.com/budgets', {
         id: userData.key.id,
         amount: parseInt(cost),
         category_id: category,
@@ -226,7 +226,7 @@ export default function Budget() {
 
   const handleDelete = async (id) => {
     if (userData && userData.key && userData.key.id) {
-      await axios.delete('http://localhost:5000/budget', {
+      await axios.delete('https://expense-9nyk.onrender.com/budget', {
         data: {
           budget_id: id,
           user_id: userData.key.id,
@@ -241,7 +241,7 @@ export default function Budget() {
   const handleEditFormSubmit = async (id) => {
     
     if(editCost&&userData && userData.key && userData.key.id){
-      await axios.patch('http://localhost:5000/budget', {
+      await axios.patch('https://expense-9nyk.onrender.com/budget', {
         user_id: userData.key.id,
         amount: parseInt(editCost),
         category_id: editCategory,
