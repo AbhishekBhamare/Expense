@@ -115,6 +115,7 @@ cron.schedule('0 0 1 * *', () => {
 
 
 app.post("/signup", async (req, res) => {
+    console.log('In SignUp')
     const userData = req.body;
     if (!(userData.name&&userData.username&&userData.email&&userData.password)){
         return res.status(400).send("All data fields are compulsory");
@@ -153,6 +154,7 @@ app.post("/signup", async (req, res) => {
 
 
 app.post('/login', async (req, res) => {
+    console.log('In Login')
     await calculateRemainingBudget();
     const { email, password } = req.body;
     if(!(email && password)){
@@ -566,5 +568,6 @@ app.delete('/budget', async (req, res) => {
 
 
 app.listen(Port, () => {
+    console.log('Backend server is running!')
     // console.log("Server connected to the port", Port);
 });
