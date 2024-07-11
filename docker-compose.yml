@@ -14,31 +14,5 @@ services:
     
     
 
-  backend:
-    build: ./backend
-    command: npm start
-    environment:
-      - PGUSER=${PGUSER}
-      # - PGPASSWORD=${PGPASSWORD}
-      - PGDATABASE=${PGDATABASE}
-      - PGHOST=db
-      - PGPORT=${PGPORT}
-      - NODE_ENV=production
-      - PORT=5000
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-    ports:
-      - "5000:5000"
-    depends_on:
-      - db
-
-  frontend:
-    build: ./frontend
-    command: npm start
-    environment:
-      - REACT_APP_API_URL=https://expense-virid.vercel.app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-
-
+  
+  
