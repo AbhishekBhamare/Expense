@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'
-import axiosInstance from '../axiosConfig';
+import axios from 'axios';
+import Success from '../UI/Success';
+import Error from '../UI/Error';
 
 export default function Signup(props) {
   const [name, setName] = useState('');
@@ -8,26 +9,35 @@ export default function Signup(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const navigate = useNavigate();
+  const [signUpError, setSignupError] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (confirmPassword !== password) {
-      alert('Password does not match!');
+      setMessage('Passwords does not match!')
+      setSignupError(true);
+      setTimeout(() => setSignupError(false), 1200);
       return;
     }
 
-    axiosInstance.post('/api/signup', {
+    axios.post('http://localhost:5000/signup', {
       name: name,
       username: username,
       email: email,
       password: password
     }).then((response) => {
-      console.log("Signup successful", response);
-      navigate('/login')
+      setMessage(response.data.message);
+      setSignupSuccess(true);
+      setTimeout(() => setSignupSuccess(false), 1200);
+      setTimeout(() => props.setShowSignup(false), 1200);
+      setTimeout(() => props.setShowLogin(true), 1200);
 
     }).catch((error) => {
-      console.error("Signup error", error);
+      setMessage(error.response.data);
+      setSignupError(true);
+      setTimeout(() => setSignupError(false), 1200);
     });
 
   }
@@ -100,6 +110,15 @@ export default function Signup(props) {
             <button onClick={() => {props.setShowLogin(true); props.setShowSignup(false)}} className='text-blue-400'>Login</button>
 
           </form>
+          <div>{
+            signUpError && <Error error={message} />  
+          }
+          </div>
+          <div>
+          {
+           signupSuccess && <Success success={message}/>
+          }
+          </div>
         </div>
       </div>
     </div>

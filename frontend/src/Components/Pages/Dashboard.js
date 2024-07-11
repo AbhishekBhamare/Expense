@@ -1,11 +1,14 @@
-import React, { useContext, useCallback, useEffect } from 'react'
+import React, { useContext, useCallback, useEffect, useRef } from 'react'
 import { useState } from 'react';
 import Sidebar from '../UI/Sidebar';
 import Loading from '../UI/Loading';
 import { MyContext } from '../Utils/MyContext';
+import axios from 'axios';
 import AnimatedArrowButton from '../UI/AnimatedArrow';
 import LineChart from '../UI/LineChart';
-import axiosInstance from '../axiosConfig';
+import Error from '../UI/Error';
+
+
 
 import {
   Chart as ChartJS,
@@ -39,8 +42,6 @@ export default function Dashboard() {
 
   const { userData } = useContext(MyContext);
   const [expense, setExpense] = useState(null);
-  // const [authUser, setAuthUser] = useState(null);
-  // const [totalExpense, setTotalExpense] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [income, setIncome] = useState('');
   const [newIncome, setNewIncome] = useState('');
@@ -48,6 +49,11 @@ export default function Dashboard() {
   const [categoryData, setCategoryData] = useState({});
   const [year, setYear] = useState(2024);
   const [currentMonthExp, setCurrentMonthExp] = useState(0);
+  const [waitForIncome, setWaitForIncome] = useState(false);
+  const [waitForExpense, setWaitForExpense] = useState(false);
+  const [waitForSaving, setWaitForSaving] = useState(false);
+  const [error, setError] = useState(false);
+  const [message, setMessage] = useState('');
 
   const [savingData, setSavingData] = useState({});
   const [catMonth, setCatMonth] = useState(forCatcurrentMonth);
@@ -58,50 +64,41 @@ export default function Dashboard() {
     jul: 0, aug: 0, sept: 0, oct: 0, nov: 0, dec: 0
   });
 
-  // useEffect(() => {
-  //   const verifyToken = () => {
-  //     const token = getCookie('token');
-  //     if (token) {
-  //       const decodedToken = jwtDecode(token); // Correct usage
-  //       setUserData({ key: decodedToken });
-        
-  //       setAuthUser(decodedToken);
-  //       console.log('------->', authUser);
-  //     }
-  //   };
-  //   verifyToken();
-  // }, [setUserData]);
-
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance
-        .get('/api/dashboard', {
+     await axios
+        .get('http://localhost:5000/dashboard', {
           params: { id: userData.key.id },
         })
         .then((response) => {
           setExpense(response.data);
         })
         .catch((error) => {
-          console.error('Error fetching data:', error);
+          setError(true);
+          setMessage('Error fetching data!');
+          setTimeout(() => setError(false), 1200);
+
         });
     }
+    setWaitForExpense(true);
+
   }, [userData]);
 
 
 
  
-  const fetchIncome = useCallback(() => {
+  const fetchIncome = useCallback(async() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/income', {
+      await axios.get('http://localhost:5000/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
           setIncome(response.data.income);
         })
         .catch((err) => {
-          console.log('Error fetching income');
         });
     }
+    setWaitForIncome(true)
   }, [userData])
 
 
@@ -135,7 +132,6 @@ export default function Dashboard() {
           temp = temp + amount;
         }
 
-        // console.log('month->',month)
         if (yr === parseInt(year) && monthforCategory === catMonth) {
           categoryArray.push(item);
         }
@@ -167,7 +163,7 @@ export default function Dashboard() {
         jun: income - monthlyExpenses.jun,
         jul: income - monthlyExpenses.jul,
         aug: income - monthlyExpenses.aug,
-        sept: income - monthlyExpenses.sept,
+        sept:income - monthlyExpenses.sept,
         oct: income - monthlyExpenses.oct,
         nov: income - monthlyExpenses.nov,
         dec: income - monthlyExpenses.dec
@@ -175,6 +171,7 @@ export default function Dashboard() {
     }
     setCategoryData(categoryArray);
     setSaving(Number(income) - Number(temp));
+    setWaitForSaving(true);
     setCurrentMonthExp(temp);
     // setTotalExpense(totalCost);
   }, [expense, income, year, catMonth, current_Year]);
@@ -187,31 +184,30 @@ export default function Dashboard() {
   const handleIncomeSubmit = async () => {
     try {
         if(!income){
-          const response = await axiosInstance.post('/api/income', {
+          await axios.post('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
-          // console.log('Income submitted', response);
           fetchIncome();
-        })
-        if (response.status === 200) {
+          setIncome('');
           setNewIncome('');
           setShowModal(false);
-        }
+        })
       }else{
-        const response = await axiosInstance.patch('/api/income', {
+        await axios.patch('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
-          console.log('Income updated', response);
           fetchIncome();
-        })
-        if (response.status === 200) {
-          setNewIncome('');
+          setIncome('');
           setShowModal(false);
-        }
+          setNewIncome('');
+        })
       }
     } catch (error) {
+      setShowModal(false);
+      setIncome('');
+      setNewIncome('');
       // console.error('Error submitting income:');
     }
   };
@@ -220,10 +216,22 @@ export default function Dashboard() {
     Array_year.push(i);
   }
 
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+        if (showModal && event.target.id === 'modal-backdrop') {
+            setShowModal(false);
+        }
+       };
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+        document.removeEventListener('click', handleOutsideClick);
+    };
+}, [showModal, setShowModal]);
+
   return (
     <>
       {
-        (userData) ?
+        (userData&&waitForExpense&&waitForIncome&&waitForSaving) ?
 
           <>
             <Sidebar />
@@ -242,7 +250,9 @@ export default function Dashboard() {
                       {income > 0 ? `₹${formatVal(income)}` : 'Enter Your Monthly Income'}
                     </p>
                     {income > 0 ? '' : <AnimatedArrowButton />}
-                    <button className='p-1' onClick={() => setShowModal(!showModal)}>
+                    <button 
+                    title='Add/Update you monthly income!'
+                    className='p-1' onClick={() => setShowModal(!showModal)}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                       </svg>
@@ -389,6 +399,9 @@ export default function Dashboard() {
 
                 </div>
               </div>
+              <div>{
+                error&&<Error error={message} />  
+              }</div>
             </div>
           </>
           :

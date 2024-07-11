@@ -1,8 +1,10 @@
 import React from 'react'
+import axios from 'axios';
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import axiosInstance from '../axiosConfig';
+import Error from '../UI/Error';
+import Loading from '../UI/Loading';
 
 
 export default function Login(props) {
@@ -10,23 +12,29 @@ export default function Login(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('')
 
 
   const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axiosInstance.post('/api/login', {
+    axios.post('http://localhost:5000/login', {
       email: email,
       password: password
     }).then((res) => {
       Cookies.set('token', res.data.loginUser.token, { expires: 7 });
-      
-      // console.log('Logged In Successfully', res.data.loginUser.token);
-      navigate('/dashboard');
+      setLoading(true);
+      setTimeout(() => setLoading(false), 800);
+      setTimeout(() =>
+        navigate('/dashboard'),800)
 
     }).catch((err) => {
-      console.error('Error while logging in');
+      setMessage(err.response.data);
+      setLoginError(true);
+      setTimeout( () => setLoginError(false), 1000)
     })
 
 
@@ -77,6 +85,14 @@ export default function Login(props) {
           <button onClick={() => {props.setShowLogin(false); props.setShowSignup(true)}} className='text-blue-400'>Register</button>
         </form>
 
+      </div>
+      <div>{
+        loginError && <Error error={message}/>  
+      }</div>
+      <div>
+        {
+          loading&& <Loading />
+        }
       </div>
     </div>
     </div>

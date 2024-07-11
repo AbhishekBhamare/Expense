@@ -1,7 +1,10 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import Sidebar from '../UI/Sidebar';
+import axios from 'axios';
 import { MyContext } from '../Utils/MyContext';
-import axiosInstance from '../axiosConfig';
+import Loading from '../UI/Loading';
+import Error from '../UI/Error';
+import Success from '../UI/Success';
 
 export default function Budget() {
   const date = new Date();
@@ -33,34 +36,18 @@ export default function Budget() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editBudget, setEditBudget] = useState(false);
   const [editBudgetId, setEditBudgetId] = useState();
-
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [waitForBudget, setWaitForBudget] = useState(false);
 
   const add = (a, b) => {
     return Number(a ? a : 0) + Number(b ? b : 0);
   }
 
-
-  const fetchCategories = useCallback(() => {
-    if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/categories', {
-        params: { id: userData.key.id },
-      }).then((response) => {
-        let cat_Array = new Map();
-        response.data.rows.forEach((row) => {
-          cat_Array.set(row.id, row.category);
-        });
-        setCatMap(cat_Array);
-        setPopulateCategories(response.data.rows);
-      });
-    }
-  }, [userData]);
-
-
-
-
   const fetchBudgetData = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/budgets', {
+      axios.get('http://localhost:5000/budgets', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data];
@@ -70,12 +57,33 @@ export default function Budget() {
         setBudgetData(currMonthData);
       });
     }
+    setWaitForBudget(true);
   }, [current_Month, current_Year, userData]);
+
+
+
+  const fetchCategories = useCallback(() => {
+    if (userData && userData.key && userData.key.id) {
+      axios.get('http://localhost:5000/categories', {
+        params: { id: userData.key.id },
+      }).then((response) => {
+        let cat_Array = new Map();
+        response.data.rows.forEach((row) => {
+            cat_Array.set(row.id, row.category);
+        });
+        
+        setCatMap(cat_Array);
+        setPopulateCategories(response.data.rows);
+      });
+    }
+  }, [userData]);
+
+
 
 
   const fetchIncome = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/income', {
+      axios.get('http://localhost:5000/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -83,7 +91,6 @@ export default function Budget() {
           setIncomeId(response.data.id);
         })
         .catch((err) => {
-          console.log('Error fetching income');
         });
     }
   }, [userData])
@@ -91,7 +98,7 @@ export default function Budget() {
 
   const fetchExpense = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/spending', {
+      axios.get('http://localhost:5000/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
         let Data = [...response.data.rows];
@@ -123,7 +130,7 @@ export default function Budget() {
 
   const fetchTotalMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/monthly_budget', {
+      axios.get('http://localhost:5000/monthly_budget', {
         params: {
           id: userData.key.id,
           month: current_Month,
@@ -131,7 +138,6 @@ export default function Budget() {
           prevMonth: prev_month,
         },
       }).then((response) => {
-        console.log("look here", response.data.rows);
         let filterData = response.data.rows.filter((item) => {
           return (item.month == current_Month && item.year == current_Year);
         })
@@ -149,21 +155,38 @@ export default function Budget() {
 
   const AddMonthlyBudget = useCallback(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.post('/api/monthly_budget', {
+      axios.post('http://localhost:5000/monthly_budget', {
         id: userData.key.id,
         income_id: incomeId,
         month: current_Month,
         year: current_Year,
         monthlyBudget: includePrevMonthBudget === 'Yes' ? add(monthlyBudget, previousMonthBudget) : monthlyBudget
       }).then((res) => {
-        console.log(res);
+        setMessage('Budget added successfully');
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 1000);
         setShowMonthlyModal(false);
         fetchTotalMonthlyBudget();
-      });
+      }).catch((err) => {
+        setMessage('Error adding budget');
+        setError(true);
+        setTimeout(() => setError(false), 1000);
+        
+      })
+    }else{
+      setMessage('Please fill the field!');
     }
   }, [current_Month, current_Year, fetchTotalMonthlyBudget, includePrevMonthBudget, monthlyBudget, previousMonthBudget, userData, incomeId])
 
 
+  const calculateProgress = (spent, budget) => {
+    if(spent===0 || budget===0){return 0}
+    return (spent / budget) * 100;
+  };
+
+  const formatVal = (val) => {
+    return Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(val);
+  };
 
 
 
@@ -176,70 +199,99 @@ export default function Budget() {
   }, [fetchBudgetData, fetchCategories, fetchExpense, userData, fetchIncome, fetchTotalMonthlyBudget, previousMonthBudget]);
 
   const handleFormSubmit = async (e) => {
-    console.log(cost, category, current_Month, current_Year);
     e.preventDefault();
-    if (userData && userData.key && userData.key.id) {
-      await axiosInstance.post('/api/budgets', {
+    if (cost && userData && userData.key && userData.key.id) {
+      await axios.post('http://localhost:5000/budgets', {
         id: userData.key.id,
         amount: parseInt(cost),
         category_id: category,
         month: current_Month,
         year: current_Year,
       }).then((response) => {
-        console.log(response);
         setShowModal(false);
         setCost('');
         setCategory('');
-        fetchBudgetData(); // Trigger fetching the updated budget data
-      });
+        fetchBudgetData(); 
+      }).catch((err) => {
+        setMessage(err.response.data);
+        setError(true);
+        setTimeout(() => setError(false), 1000);
+      })
+    }else{
+      setMessage('Please fill all the fields!')
+      setError(true);
+      setTimeout(() => setError(false), 1000);
     }
   };
 
   const handleDelete = async (id) => {
     if (userData && userData.key && userData.key.id) {
-      await axiosInstance.delete('/api/budget', {
+      await axios.delete('http://localhost:5000/budget', {
         data: {
           budget_id: id,
           user_id: userData.key.id,
         },
       }).then((response) => {
-        console.log(response);
+        setMessage(response.data.message);
         fetchBudgetData();
       });
     }
   }
 
   const handleEditFormSubmit = async (id) => {
-    if(userData && userData.key && userData.key.id){
-      await axiosInstance.patch('/api/budget', {
+    
+    if(editCost&&userData && userData.key && userData.key.id){
+      await axios.patch('http://localhost:5000/budget', {
         user_id: userData.key.id,
         amount: parseInt(editCost),
         category_id: editCategory,
         budget_id: editBudgetId
       
       }).then((response) => {
-        console.log(response);
+        setEditBudget(false);
         setShowEditModal(false);
         setEditCost('');
         setEditCategory('');
         fetchBudgetData();
+      }).catch((err) => {
+        setMessage("Already added budget for this category");
+        setError(true);
+        setTimeout(() => setError(false), 1000);
+        
       })
+    }else{
+      setMessage('Please fill all the fields!')
+      setError(true);
+      setTimeout(() => setError(false), 1000);
+        
     }
   }
 
 
-  const calculateProgress = (spent, budget) => {
-    return (spent / budget) * 100;
-  };
 
-  const formatVal = (val) => {
-    return Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(val);
-  };
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+        if (showModal && event.target.id === 'modal-backdrop') {
+            setShowModal(false);
+        }
+        if (showEditModal && event.target.id === 'modal-editbackdrop') {
+            setShowEditModal(false);
+        }
+        if (showMonthlyModal && event.target.id === 'modal-monthlybackdrop' ){
+          setShowMonthlyModal(false);
+        }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+        document.removeEventListener('click', handleOutsideClick);
+    };
+}, [showModal, setShowModal, setShowEditModal, showEditModal, showMonthlyModal, setShowMonthlyModal]);
 
-  console.log(incomeId)
   return (
     <>
-      <Sidebar />
+      {
+        userData&&waitForBudget?<>
+          <Sidebar />
       <div className='absolute left-72 p-1 top-16 overflow-auto m-8 right-0 bottom-0 max-lg:left-0 max-lg:ml-4 max-lg:mr-4'>
         <div className="flex justify-center my-4 font-semibold text-2xl text-black">Budget</div>
 
@@ -247,13 +299,16 @@ export default function Budget() {
           <div 
           title={totalMonthlyBudgetData.monthly_budget?'You have already set budget for this month':'Please add monthly budget'}
               
-          className="my-4 rounded-[18px] ring-1 ring-gray-300 hover:bg-secondary hover:text-white w-fit p-2">
+          className="my-4 mx-2 rounded-[18px] ring-1 ring-gray-300 hover:bg-secondary hover:text-white w-fit p-2">
             <button
+              className={`${totalMonthlyBudgetData.monthly_budget?'cursor-not-allowed':''}`}
               disabled={totalMonthlyBudgetData.monthly_budget ?true:false}
               onClick={() => { income ? setShowMonthlyModal(!showMonthlyModal) : window.alert('Add income before you set budget!') }}
             >Set Monthly Budget</button>
           </div>
-          <div className="flex w-full my-2 h-2.5 bg-quaternary rounded-full overflow-hidden" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+          <div 
+            title={`Amount Spent: ${formatVal(totalMonthlyExpense)}\nAmount Remaining: ${formatVal(totalMonthlyBudgetData.monthly_budget - totalMonthlyExpense)}`}
+          className="flex w-full my-2 h-2.5 bg-quaternary rounded-full overflow-hidden" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
             <div
               className={`flex flex-col justify-center overflow-hidden text-xs text-white text-center whitespace-nowrap transition duration-500
               ${calculateProgress(totalMonthlyExpense, totalMonthlyBudgetData.monthly_budget) > 79 ? 'bg-red-700' : (calculateProgress(totalMonthlyExpense, totalMonthlyBudgetData.monthly_budget) > 49 ? 'bg-yellow-500' : 'bg-green-500')}
@@ -284,17 +339,21 @@ export default function Budget() {
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="hidden size-5 max-sm:block">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
-                  <p className='max-sm:hidden px-2'>Add</p>
+                  <p 
+                  title='Set budget for any category!'
+                  className='max-sm:hidden px-2'>Add</p>
                 </button>
                 <button
                   disabled={deleteBudget}
                   onClick={() => setEditBudget(!editBudget)}
-                  className={`flex justify-center items-center rounded-[20px] py-2 px-2 ring-1 ring-gray-300  w-fit ${editBudget?'bg-quaternary':''}`}>
+                  className={`flex justify-center items-center rounded-[20px] py-2 px-2 ring-1 ring-gray-300  w-fit ${editBudget?'bg-quaternary':''} ${deleteBudget?'cursor-not-allowed':''}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="hidden size-5 max-sm:block">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                   </svg>
 
-                  <p className='max-sm:hidden px-2'>{
+                  <p 
+                  title='Edit entry'
+                  className='max-sm:hidden px-2'>{
                     editBudget?'Cancel':'Edit'
                   
                   }</p>
@@ -302,11 +361,13 @@ export default function Budget() {
                 <button
                   disabled={editBudget}
                   onClick={() => setDeleteBudget(!deleteBudget)}
-                  className={`flex justify-center items-center rounded-[20px] py-2 px-2 ring-1 ring-gray-300  w-fit ${deleteBudget?'bg-quaternary':''}`}>
+                  className={`flex justify-center items-center rounded-[20px] py-2 px-2 ring-1 ring-gray-300  w-fit ${deleteBudget?'bg-quaternary':''} ${editBudget?'cursor-not-allowed':''}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="hidden size-5 max-sm:block">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                   </svg>
-                  <p className={`max-sm:hidden px-2 `}>{
+                  <p 
+                  title='Delete entry'
+                  className={`max-sm:hidden px-2 `}>{
                     deleteBudget?'Cancel':'Delete'
                   }</p>
                 </button>
@@ -322,8 +383,7 @@ export default function Budget() {
 
 
                   <div key={index}
-                    title={`Amount Spent: ${formatVal(temp.get(catMap.get(item.category_id)))}\nAmount Remaining: ${formatVal(item.amount - temp.get(catMap.get(item.category_id)))}
-                `}
+                    title={`Amount Spent: ${temp.get(catMap.get(item.category_id))?formatVal(temp.get(catMap.get(item.category_id))):0}\nAmount Remaining: ${item.amount - temp.get(catMap.get(item.category_id))?formatVal(item.amount - temp.get(catMap.get(item.category_id))):formatVal(item.amount)}`}
                     className='grid hover:bg-slate-200 rounded-[12px] ring-1 ring-gray-300 p-3 my-4 grid-cols-1'>
                     <div className="flex justify-between">
                       <label className="text-sm font-semibold rounded-[20px] bg-opacity-10 w-fit">{catMap.get(item.category_id)}</label>
@@ -364,7 +424,7 @@ export default function Budget() {
 
                 ))
                 : <div className='flex justify-center w-full'>
-                  <p>No Data to Show</p>
+                  <p>NO DATA FOUND</p>
                 </div>
             }
           </div>
@@ -417,7 +477,7 @@ export default function Budget() {
 
       )}
       {showEditModal && (
-        <div id="modal-backdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+        <div id="modal-editbackdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white rounded-[12px] p-8 max-w-md w-full">
             <div className='flex justify-end text-black'>
               <button
@@ -463,7 +523,7 @@ export default function Budget() {
 
       )}
       {showMonthlyModal && (
-        <div id="modal-backdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+        <div id="modal-monthlybackdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           {
             <div className="bg-white rounded-lg p-8 max-w-md w-full">
               <div className="flex justify-end">
@@ -518,6 +578,14 @@ export default function Budget() {
           }
         </div>
       )}
+      <div>{
+        error&&<Error error={message}/>
+      }</div>
+      <div>{
+        success&&<Success success={message}/>
+      }</div>
+        </>:<Loading/>
+      }
 
     </>
   );

@@ -6,7 +6,6 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import pg from 'pg';
 import bcrypt from 'bcryptjs';
-// import auth from './middleware/auth.js';
 import cron from 'node-cron';
 
 dotenv.config();
@@ -33,7 +32,8 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Use the frontend URL from environment variables    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: 'http://localhost:3000', // Specify the frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable cookies to be sent across domains
     optionsSuccessStatus: 204,
   };
@@ -92,7 +92,7 @@ const calculateRemainingBudget = async () => {
             // console.log("remaining budget",addBudget.rows);
         }
     }catch(err){
-        console.log('Error calculating remaining budget', err);
+        // console.log('Error calculating remaining budget', err);
     }finally{
         client.release();
     }
@@ -100,7 +100,7 @@ const calculateRemainingBudget = async () => {
 
 
 cron.schedule('0 0 1 * *', () => {
-    console.log('Running scheduled task to calculate remaining budget...');
+    // console.log('Running scheduled task to calculate remaining budget...');
     calculateRemainingBudget();
 });
 
@@ -121,8 +121,7 @@ app.post("/signup", async (req, res) => {
     const existingUser = await client.query(`SELECT email from users where email=$1`, [userData.email]); 
     if(existingUser.rows.length > 0){
         client.release();
-        console.log("User already exists");
-        return res.status(400).send("User already exists"); 
+        return res.status(400).send("Email already in use!"); 
     }
     // console.log("Checking arror",userData);
     try {
@@ -139,11 +138,11 @@ app.post("/signup", async (req, res) => {
         // console.log(result.rows[0], "Data added to database successfully");
         delete userData.password;
 
-        res.status(201).send({ message: "User created successfully", userData: userData});
+        res.status(201).send({ message: "Registration successful now login with same credentials!", userData: userData});
        
     } catch (err) {
-        console.log("Error adding to the database", err);
-        res.status(500).send("Error adding to the database");
+        // console.log("Change a few things up and try again", err);
+        res.status(500).send("Change a few things up and try again!");
     }
 })
 
@@ -158,12 +157,12 @@ app.post('/login', async (req, res) => {
     try{
         const result = await client.query(`SELECT * from users where email=$1`,[email]);
         if(result.rows.length === 0){
-            return res.status(401).send('Invalid email or password');
+            return res.status(401).send('Invalid email!');
         }
         const loginUser = result.rows[0];
         const isValidPass = await bcrypt.compare(password, loginUser.hashedpassword);
         if(!(email && isValidPass)){
-            res.status(401).send("Invali email or password");
+            res.status(401).send("Invalid password!");
         }
         const token = Jwt.sign({
             email: loginUser.email,
@@ -184,11 +183,10 @@ app.post('/login', async (req, res) => {
         });
         delete loginUser.hashedpassword;
         loginUser.token = token;
-        // console.log("Token set in cookie", token);
         res.status(200).send({ message: "Login Successful", loginUser });
 
     }catch(err){
-        console.log("Error while logging in", err);
+        // console.log("Error while logging in", err);
     }finally{
         client.release();
     }
@@ -212,7 +210,7 @@ app.post('/spending', async (req, res) => {
         // console.log(result.rows[0], "Data added to database successfully");
         res.status(201).send({ message: "Expense added successfully", expenseData: expenseData});
     }catch(err){
-        console.log("Error adding to the database", err);
+        // console.log("Error adding to the database", err);
     }finally{
         client.release();
     
@@ -234,7 +232,7 @@ app.post('/income', async(req, res) => {
     res.status(201).send({message: "Income added succesfully", income: val})
 
     }catch(err){
-        console.log('Error addingg income');
+        // console.log('Error addingg income');
     }finally{
         client.release();
     }
@@ -251,7 +249,7 @@ app.post('/budgets', async (req, res) => {
     const result = await client.query(query, values);
     res.status(201).send({message: "Budget added successfully", budget: val});
     }catch(err){
-        console.log("Error adding budget");
+        res.status(400).send('Budget already exists for this category!');
     }finally{
         client.release();
     }
@@ -271,7 +269,7 @@ app.post('/monthly_budget', async (req, res) => {
         res.status(201).send({message: "Monthly budget added successfully", monthlyBudget: val});
 
     }catch(err){
-        console.log('Error adding monthly budget');
+        // console.log('Error adding monthly budget');
     }finally{
         client.release();
      
@@ -286,7 +284,7 @@ app.post('/categories', async (req, res) => {
     const existingCategory = await client.query(`SELECT category from categories where category=$1 and user_id=$2`, [val.category, val.id]); 
     if(existingCategory.rows.length > 0){
         client.release();
-        console.log("Category already exists");
+        // console.log("Category already exists");
         return res.status(400).send("Category already exists"); 
     }
 
@@ -297,9 +295,10 @@ app.post('/categories', async (req, res) => {
     const values = [val.id, val.category];
     const result = await client.query(query, values);
     // console.log(result.rows[0]);
+    return res.status(201).send({message: `${val.category} added successfully!`, category: val});
     
     }catch(err){
-        console.log('Error adding category');
+        return res.status(500).send('Error adding category');
     }finally{
         client.release();
     }
@@ -312,7 +311,7 @@ app.get('/categories', async (req, res) => {
         const result = await client.query(`SELECT * FROM categories where user_id=$1`, [req.query.id]);
         return res.send(result);
     }catch(err){
-        console.log('Something went wrong');
+        // console.log('Something went wrong');
     }finally{
         client.release();
     }
@@ -343,10 +342,10 @@ app.get('/monthly_budget', async (req, res) => {
 
     try{
         const result = await client.query(`SELECT * FROM monthly_budget where user_id=$1 and (month=$2 or month=$4) and year=$3`, [req.query.id, req.query.month, req.query.year, req.query.prevMonth]);
-        console.log(result);
+        // console.log(result);
         return res.send(result);
     }catch(err){
-        console.log('Something went wrong fetching monthly budget');
+        // console.log('Something went wrong fetching monthly budget');
     }finally{
         client.release();
     }
@@ -363,7 +362,7 @@ app.get('/income', async (req, res) => {
         // console.log('Income fetched', result)
         return res.send(result.rows[0]);
     }catch(err){
-        console.log('Something went wrong fetching income');
+        // console.log('Something went wrong fetching income');
     }finally{
         client.release();
     }
@@ -378,7 +377,7 @@ app.get('/budgets', async (req, res) => {
         // console.log('hahahahah', result.rows)
         return res.send(result.rows);
     }catch(err){
-        console.log('Somthing went wrong in fetching budget');
+        res.status(400).send('Error fetching budget');
     }finally{
         client.release();
     }
@@ -404,7 +403,7 @@ app.get('/dashboard', async (req, res) => {
         return res.send(result);
     
     }catch(err){
-           console.log('Something went wrong',err);  
+        // console.log('Something went wrong',err);  
     }finally{
         client.release();
     }
@@ -416,11 +415,11 @@ app.get('/user', async (req, res) => {
     try{
         const result = await client.query(`SELECT * FROM users where id=$1`, [req.query.id]);
         delete result.rows[0].hashedpassword;
-        console.log(result.rows[0]);
+        // console.log(result.rows[0]);
 
         return res.send(result.rows[0]);
     }catch(err){
-        console.log('Error fetching user data');
+        // console.log('Error fetching user data');
     }finally{
         client.release();
     }
@@ -440,7 +439,7 @@ app.patch('/spending', async (req, res) => {
         where id=$5`, [entry.amount, entry.category, entry.date, entry.description, entry.id]);
         return res.status(200).send(result);
     }catch(err){
-        console.log('Error updating entry', err);
+        // console.log('Error updating entry', err);
     }finally{
         client.release();
     }
@@ -456,7 +455,7 @@ app.patch('/income',async (req, res) => {
     res.status(201).send({message: "Income updated succesfully", income: val})
 
     }catch(err){
-        console.log('Error addingg income');
+        // console.log('Error addingg income');
     }finally{
         client.release();
     }
@@ -464,13 +463,14 @@ app.patch('/income',async (req, res) => {
 
 app.patch('/budget', async (req, res) => {
     const val = req.body;
-    console.log(val);
+    // console.log(val);
     const client = await pool.connect();
     try{
         const result = await client.query('UPDATE budgets SET amount=$1, category_id=$2 WHERE id=$3 and user_id=$4', [val.amount, val.category_id, val.budget_id, val.user_id]);
         return res.status(200).send('Budget updated successfully');
     }catch(err){
-        console.log('Error updating budget');
+        // console.log('Error updating budget');
+        res.status(400).send('Error updating budget');
     }finally{
         client.release();
     }
@@ -488,7 +488,7 @@ app.patch('/user', async (req, res) => {
         let result;
         // console.log(user.oldPassword,user.newPassword,user.confirmPassword)
         if(user.oldPassword&&user.newPassword&&user.confirmPassword){
-            console.log('haa',currentUserData.hashedpassword, user.oldPassword);
+            // console.log('haa',currentUserData.hashedpassword, user.oldPassword);
             const isValidPass = await bcrypt.compare(user.oldPassword, currentUserData.hashedpassword);
             // console.log(isValidPass);
             if(!isValidPass){
@@ -499,6 +499,7 @@ app.patch('/user', async (req, res) => {
                 'UPDATE users SET hashedpassword=$1 WHERE id=$2',
                 [encryptedpassword, user.id]
             );
+            return res.send('Password updated successfully');
         }
         else if (user.email) {
             result = await client.query(
@@ -519,8 +520,8 @@ app.patch('/user', async (req, res) => {
     
         res.status(200).send({ result });
     } catch (err) {
-        console.log('Error updating entry', err);
-        res.status(500).send('Server error');
+        // console.log('Error updating entry', err);
+        res.status(500).send('Error updating entry');
     } finally {
         client.release();
     }
@@ -536,7 +537,7 @@ app.delete('/spending', async (req, res) => {
         await client.query(`DELETE FROM transactions where id=$1`, [id]);
         return res.status(200).send('Entry deleted successfully');
     }catch(err){
-        console.log('Error deleting entry');
+        // console.log('Error deleting entry');
     }finally{
         client.release();
     }
@@ -551,7 +552,7 @@ app.delete('/budget', async (req, res) => {
         await client.query(`DELETE FROM budgets where id=$1 and user_id=$2`, [id.budget_id, id.user_id]);
         return res.status(200).send('Budget deleted successfully');
     }catch(err){
-        console.log('Error deleting budget');
+        // console.log('Error deleting budget');
     }finally{
         client.release();
     }
@@ -560,5 +561,5 @@ app.delete('/budget', async (req, res) => {
 
 
 app.listen(Port, () => {
-    console.log("Server connected to the port", Port);
+    // console.log("Server connected to the port", Port);
 });

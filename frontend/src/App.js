@@ -11,15 +11,16 @@ import { useCallback, useContext, useEffect, useState } from 'react';
 import { MyContext } from './Components/Utils/MyContext';
 import { getCookie } from './Components/Utils/getCookie';
 import { jwtDecode } from 'jwt-decode';
-import axiosInstance from './Components/axiosConfig';
+import axios from 'axios';
+
 
 function App() {
   const { userData, setUserData } = useContext(MyContext);
   const [id, setId] = useState();
 
-  const getUserData = useCallback(() => {
+  const getUserData = useCallback(async() => {
     if (id) {
-      axiosInstance.get('/api/user', {
+      await axios.get('http://localhost:5000/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });
@@ -30,10 +31,8 @@ function App() {
   useEffect(() => {
     const verifyToken = () => {
       const token = getCookie('token');
-      // console.log('this is token', token);
       if (token) {
         const decodedToken = jwtDecode(token);
-        console.log(decodedToken.id);
         setId(decodedToken.id);
       }
     };
@@ -41,7 +40,6 @@ function App() {
     getUserData();
   }, [getUserData]);
 
-  console.log(userData);
 
   return (
     <>

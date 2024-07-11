@@ -24,7 +24,6 @@ import {
 
 
 export default function DoughnutChart(props) {
-  // console.log('Category Data:', props.categoryData);
 
   const [chartData, setChartData] = useState({
     labels: [],
@@ -67,9 +66,7 @@ export default function DoughnutChart(props) {
       const borderColor = [];
 
       Object.keys(categoryMap).forEach(category => {
-        // console.log('Category:', category);
         labels.push(category);
-        // console.log(categoryMap[category]);
         data.push(categoryMap[category]);
         const color = generateRandomColor();
         backgroundColor.push(color);

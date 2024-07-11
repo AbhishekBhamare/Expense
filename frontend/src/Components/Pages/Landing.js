@@ -3,6 +3,9 @@ import Login from './Login';
 import Signup from './Signup';
 import img1 from '../../screenshots/img1.png';
 import img2 from '../../screenshots/img2.png';
+import img3 from '../../screenshots/img3.png';
+import img4 from '../../screenshots/img4.png';
+import img5 from '../../screenshots/img5.png';
 import logo from '../../screenshots/logo.png';
 import { useNavigate } from 'react-router-dom';
 import l1 from '../../screenshots/L1.jpg';
@@ -15,7 +18,7 @@ export default function Landing() {
     const [preClick, setPreClick] = useState(false);
     const [nextClick, setNextClick] = useState(false);
 
-    const imageMap = [img1, img2];
+    const imageMap = [img1, img2, img3, img4, img5];
 
     const prevButton = (e) => {
         setPreClick(true)
@@ -97,10 +100,10 @@ export default function Landing() {
                 <div className="absolute inset-0 flex justify-center text-7xl">
                     <div className="m-10 flex justify-start">
                         <div className="grid m-14 h-fit grid-cols-1 max-lg:text-5xl max-sm:text-3xl max-sm:m-1">
-                            <div className="flex justify-center items-center">Your finance management made easier with Expense.</div>
+                            <div className="flex justify-center items-center text-center">Your finance management made easier with Expense.</div>
                             <div className="m-10 flex justify-center max-sm:m-1">
-                                <button className='w-fit h-fit m-3 px-5 py-3 max-sm:p-3 max-sm:text-sm text-xl font-light ring-1 ring-gray-300 rounded-[20px] bg-secondary text-white' onClick={() => setShowSignup(!showSignup)}>Get Started</button>
-                                <button className='w-fit h-fit m-3 px-5 py-3 max-sm:p-3 max-sm:text-sm text-xl font-light ring-1 ring-gray-300 rounded-[20px] bg-primary'>Learn More</button>
+                                <button className='w-fit h-fit m-3 px-5 py-3 max-sm:p-3 max-sm:text-sm text-xl font-normal rounded-[20px] bg-secondary text-white' onClick={() => setShowSignup(!showSignup)}>Get Started</button>
+                                <button className='w-fit h-fit m-3 px-5 py-3 max-sm:p-3 max-sm:text-sm text-xl font-normal rounded-[20px] bg-primary'>Learn More</button>
                             </div>
                             <div className="flex justify-center text-4xl m-10 items-center max-sm:text-2xl">
                                 <p>Take a Look</p>
@@ -125,12 +128,6 @@ export default function Landing() {
                     </div>
                 </div>
             </div>
-            {/* <div className='max-sm:m-20'></div>
-            <div className="flex h-24 text-base p-4 bg-primary ring-1 ring-gray-300">
-                <footer className='flex mb-0 justify-end'>
-                    © Expense 2024
-                </footer>
-            </div> */}
         </>
     );
 }

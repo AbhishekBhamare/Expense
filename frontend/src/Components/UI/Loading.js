@@ -5,7 +5,7 @@ export default function Loading() {
     <>
 
 
-      {<div id="modal-backdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-transparent bg-opacity-60">
+      {<div id="modal-backdrop" className="fixed inset-0 z-50 flex items-center justify-center bg-primary">
         <div className=" p-8">
           <div role="status" className='flex items-center justify-center h-full text-white'>
             <div className="relative">

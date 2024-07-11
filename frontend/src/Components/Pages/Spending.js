@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import Sidebar from '../UI/Sidebar';
+import axios from 'axios';
 import { MyContext } from '../Utils/MyContext';
-import axiosInstance from '../axiosConfig'; 
+import Loading from '../UI/Loading';
+import Error from '../UI/Error';
 
 
 export default function Spending() {
@@ -35,6 +37,9 @@ export default function Spending() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [showButton, setShowButton] = useState(false);
   const [dataShowing, setDataShowing] = useState([]);
+  const [waitForData, setWaitForData] = useState(false);
+  const [error, setError] = useState(false);
+  const [message, setMessage] = useState('');
 
   const formatVal = (val) => {
     return Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(val);
@@ -42,23 +47,22 @@ export default function Spending() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    // console.log(cost, category, date, description);
-    if (cost && category && date && description) {
-      await axiosInstance.post('/api/spending', {
+    if (cost && category && date) {
+      await axios.post('http://localhost:5000/spending', {
         id: userData.key.id,
         cost: cost,
         category: category,
         date: date,
         description: description,
       }).then((response) => {
-        // console.log('Data sent successfully', response.data);
         setShowModal(false);
         fetchData();
       }).catch((err) => {
-        console.log('Error while sending data');
       });
     } else {
-      console.log('Error while submitting form');
+      setMessage('Please fill all the fields');
+      setError(true);
+      setTimeout(() => setError(false), 1000);
     }
     setCategory('');
     setCost('');
@@ -84,18 +88,20 @@ export default function Spending() {
       if (showModal && event.target.id === 'modal-backdrop') {
         setShowModal(false);
       }
+      if(editModal && event.target.id === 'modal-editbackdrop'){
+        setEditModal(false);
+      }
     };
     document.addEventListener('click', handleOutsideClick);
 
     return () => {
       document.removeEventListener('click', handleOutsideClick);
     };
-  }, [showModal]);
+  }, [showModal, editModal]);
 
-  const fetchData = useCallback(() => {
-    // console.log("changes")
+  const fetchData = useCallback(async () => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/spending', {
+      await axios.get('http://localhost:5000/spending', {
         params: { id: userData.key.id },
       }).then((response) => {
 
@@ -133,12 +139,16 @@ export default function Spending() {
         }
         setDataShowing(newSortedRows);
       }).catch((error) => {
-        console.error('Error fetching data:', error);
+        // console.error('Error fetching data:', error);
+        setError(true);
+        setMessage('Error fetching data');
+        setTimeout(() => setError(false), 1000);
       });
     }
+    setWaitForData(true);
   }, [userData, sortField, month, year]);
 
-  const handleEdit = () => {
+  const handleEdit = async() => {
     const entry = {
       id: Id,
       category: category,
@@ -146,14 +156,16 @@ export default function Spending() {
       amount: cost,
       description: description
     };
-    axiosInstance.patch('/api/spending', entry)
+    await axios.patch('http://localhost:5000/spending', entry)
       .then((res) => {
-        // console.log(res);
         setEditModal(false);
         fetchData();
       })
       .catch((error) => {
-        console.error('Error updating entry:');
+        setError(true);
+        setMessage('Error editing entry!');
+        setTimeout(() => setError(false), 1000);
+
       });
     setEdit(false);
   };
@@ -167,37 +179,38 @@ export default function Spending() {
   };
 
   const handleDelete = async (id) => {
-    return axiosInstance.delete('/api/spending', { data: { id } })
+    return axios.delete('http://localhost:5000/spending', { data: { id } })
       .then((res) => {
         fetchData();
         setDeleteEntry(false);
 
       })
       .catch((error) => {
-        console.error('Error deleting entry:');
+        setError(true);
+        setMessage('Error deleting entry!');
+        setTimeout(() => setError(false), 1000);
       });
   };
 
 
   useEffect(() => {
     if (userData && userData.key && userData.key.id) {
-      axiosInstance.get('/api/categories', {
+      axios.get('http://localhost:5000/categories', {
         params: { id: userData.key.id },
       }).then((response) => {
         setPopulateCategories(response.data.rows);
       }).catch((error) => {
-        console.error('Error fetching categories:', error);
-      });
+            });
     }
     fetchData();
   }, [userData, sortField, fetchData]);
 
-
-  console.log("this is data",dataShowing, expense)
+  
+  
 
   return (
     <>
-      {
+      {userData&&waitForData?
           <>
             <Sidebar />
             <div className="absolute left-72 top-16 overflow-auto m-8 right-0 bottom-0 max-lg:left-0 max-lg:ml-4 max-lg:mr-4">
@@ -241,14 +254,22 @@ export default function Spending() {
 
                   </div>
                   <div className='flex justify-between items-center'>
-                    <div className="mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden">
+                    <div 
+                    title='Add your spendings'
+                    className="mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden">
                       <button onClick={handleModal} className="px-2 text-black">Add</button>
                     </div>
-                    <div className={`mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden ${edit ? 'bg-quaternary' : ''}`}>
-                      <button className="px-2 text-black" disabled={deleteEntry} onClick={() => setEdit(!edit)}>{edit ? 'Cancel' : 'Edit'}</button>
+                    <div 
+                    title='Edit entry'
+                      
+                    className={`mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden ${edit ? 'bg-quaternary' : ''}`}>
+                      <button 
+                      className={`px-2 text-black ${deleteEntry?'cursor-not-allowed':''}`} disabled={deleteEntry} onClick={() => setEdit(!edit)}>{edit ? 'Cancel' : 'Edit'}</button>
                     </div>
-                    <div className={`mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden ${deleteEntry ? 'bg-quaternary' : ''}`}>
-                      <button className="px-2 text-black" disabled={edit} onClick={() => setDeleteEntry(!deleteEntry)}>{deleteEntry ? 'Cancel' : 'Delete'}</button>
+                    <div 
+                    title='Delete entry'
+                    className={`mx-1 py-2 px-2 w-fit ring-1 ring-gray-200 rounded-[20px] max-lg:hidden ${deleteEntry ? 'bg-quaternary' : ''}`}>
+                      <button className={`px-2 text-black ${edit?'cursor-not-allowed':''}`} disabled={edit} onClick={() => setDeleteEntry(!deleteEntry)}>{deleteEntry ? 'Cancel' : 'Delete'}</button>
                     </div>
                   </div>
                   <div className='flex justify-between'>
@@ -324,7 +345,7 @@ export default function Spending() {
                               </td>
                               <td className="text-left py-4 px-4">{item.description}</td>
                               <td className="text-left py-4 px-4">{formatDate(item.transaction_date)}</td>
-                              {edit ? <td className='text-left   flex justify-center py-5 px-4"'>
+                              {edit ? <td className='text-left flex justify-center py-5 px-4"'>
                                 <button className='text-green-500' onClick={() => openEditModal(item)}>
                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -353,7 +374,7 @@ export default function Spending() {
                     </table>
                   </div>
                   {!(dataShowing.length) > 0?
-                      <div className="flex text-black text-xl justify-center m-6">NO DATA FOUND</div>:<></>
+                      <div className="flex text-black text-base justify-center m-6">NO DATA FOUND</div>:<></>
                   }
                 </>
 
@@ -379,7 +400,7 @@ export default function Spending() {
                         <div className='grid grid-cols-2'>
                           <div className='mr-2'>
                             <select id="dropdownDelay" onChange={(e) => setCategory(e.target.value)} className='bg-gray-50 border border-gray-300 text-sm rounded-lg text-black focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-inherit focus:outline-none'>
-                              <option disabled selected={true} className='bg-inherit px-1 rounded-none'>Select Catogory</option>
+                              <option disabled selected className='bg-inherit px-1 rounded-none'>Select Catogory</option>
                               {populateCategories.map((item) =>
                                 <option value={item.category} key={item.id} className='bg-inherit text-black px-1 rounded-none'>{item.category}</option>
 
@@ -403,7 +424,7 @@ export default function Spending() {
                   </div>
                 )}
                 {
-                  editModal ? <div id="modal-backdrop" className="fixed inset-0 z-50 rounded flex items-center justify-center bg-black bg-opacity-70">
+                  editModal ? <div id="modal-editbackdrop" className="fixed inset-0 z-50 rounded flex items-center justify-center bg-black bg-opacity-70">
 
                     <div className="bg-primary p-8 max-w-md rounded-[12px] w-full">
                       <div className='flex justify-end text-black'>
@@ -448,8 +469,11 @@ export default function Spending() {
             </div> : <></>
                 }
               </div>
+              <div>{
+                error&&<Error error={message}/>
+                }</div>
             </div>
           </> 
-      }</>
+     :<Loading/> }</>
   );
 };

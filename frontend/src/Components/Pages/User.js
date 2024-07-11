@@ -2,8 +2,11 @@ import React, { useContext, useEffect, useState } from 'react'
 import Sidebar from '../UI/Sidebar'
 import { MyContext } from '../Utils/MyContext';
 import dummyProfile from '../../screenshots/dummyProfile.png'
+import axios from 'axios';
 import { useRef } from 'react';
-import axiosInstance from '../axiosConfig';
+import Error from '../UI/Error';
+import Success from '../UI/Success';
+import Loading from '../UI/Loading';
 
 
 export default function User() {
@@ -15,10 +18,13 @@ export default function User() {
   const [newName, setNewName] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [oldPassword, setOldPassword] = useState(''); 
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
+  const [error, setError] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState('');
+  
   const preserveUserData = useRef(userData);
 
   useEffect(() => {
@@ -27,13 +33,13 @@ export default function User() {
 
   const handlePatchRequest = async (field1, id, field2, value, setEditField) => {
     try {
-      setEditField(false); // Set the edit state to false
-      console.log(value);
-      const response = await axiosInstance.patch('/api/user', { [field1]: id, [field2]: value });
-      console.log(response);
+      setEditField(false);
+      const response = await axios.patch('http://localhost:5000/user', { [field1]: id, [field2]: value });
       setUserData(prev => ({ ...prev, key: { ...prev.key, [field2]: value } })); // Update userData state
     } catch (error) {
-      console.error('Error updating user:', error.response ? error.response.data : error.message);
+      setError(true);
+      setMessage('Error updating field!');
+      setTimeout(() => setError(false), 1200);
     }
   };
 
@@ -54,55 +60,89 @@ export default function User() {
   };
 
   const handleChangePassword = async () => {
-    if(confirmPassword !== newPassword){
-      alert('Passwords do not match');
-    }
-   
-    try {
-      setShowChangePasswordModal(false); // Set the edit state to false
-      await axiosInstance.patch('/api/user', { 
+    if(oldPassword&&confirmPassword&&newPassword){
+      if (confirmPassword !== newPassword) {
+        setError(true);
+        setMessage('Passwords do not match');
+        setTimeout(() => setError(false), 1000);
+        setConfirmPassword('');
+        setNewPassword('');
+        setOldPassword('');
+        return;
+      }
+  
+      try {
+        setShowChangePasswordModal(false); // Set the edit state to false
+        await axios.patch('http://localhost:5000/user', {
           id: userData.key.id,
           oldPassword: oldPassword,
           newPassword: newPassword,
-          confirmPassword: confirmPassword 
-      });
-      console.log('Password changed');
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (error) {
-      console.log('error updating password')
+          confirmPassword: confirmPassword
+        }).then((response) => {
+          setSuccess(true);
+          setMessage(response.data);
+          setTimeout(() => setSuccess(false), 1200);
+          setOldPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        }).catch((error) => {
+          setError(true);
+          setMessage(error.response.data);
+          setTimeout(() => setError(false), 1200);
+        })
+      } catch (error) {
+        setError(true);
+        setTimeout(() => setError(false), 1200);
+      }
+    }else{
+      setError(true);
+      setMessage('Please enter all fields');
+      setTimeout(() => setError(false), 1000);
     }
   }
 
-  console.log("user",userData.key);
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (showChangePasswordModal && event.target.id === 'modal-backdrop') {
+        setShowChangePasswordModal(false);
+      }
+
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [setShowChangePasswordModal, showChangePasswordModal]);
+
   return (
     <>
+    {
+      userData?<>
       <Sidebar />
       <div className='absolute left-72 top-16 overflow-auto m-9 right-0 bottom-0 max-lg:left-0 max-lg:ml-4 max-lg:mr-4'>
-        <div className="flex justify-center  my-4 font-semibold text-2xl text-black">Profile</div>
-        <div className="p-4 w-full h-fit bg-primary max-lg:h-fit  max-lg:m-2">
+        <div className="flex justify-center my-4 font-semibold text-2xl text-black">Profile</div>
+        <div className="p-4 w-full h-fit rounded-[12px] bg-primary max-lg:h-fit  max-lg:m-2">
           <div className='grid grid-cols-1'>
             <div className='flex justify-center items-center gap-4'>
               <img src={dummyProfile} alt='profile' className='w-36 h-36 rounded-full' />
             </div>
             <div className='flex justify-center mt-5 font-bold'>
-                {userData.key.name}
-              </div>
+              {userData.key.name}
+            </div>
           </div>
-          <div className=' flex m-5 py-2 border border-t-0 border-l-0 border-r-0 border-gray-300 justify-start'>
+    <div className=' flex m-5 py-2 border rounded-[12px] px-2 justify-start'>
             <div className='font-bold'>Name:&nbsp; </div>
-            <div className='flex  w-full justify-between'>
+            <div className='flex w-full justify-between'>
               {
                 !editName ? <div>{userData.key.name}</div> :
                   <div className='flex'>
-                    <input 
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className='ring-1 ring-gray-300 rounded-[12px] p-1' placeholder='Enter new name' />
-                    <button 
-                    onClick={handleNameChange}
-                    className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
+                    <input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className='ring-1 ring-gray-300 rounded-[12px] p-1' placeholder='Enter new name' />
+                    <button
+                      onClick={handleNameChange}
+                      className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
                   </div>
               }
               <div onClick={() => setEditName(!editName)}>
@@ -114,16 +154,16 @@ export default function User() {
               </div>
             </div>
           </div>
-          <div className='flex m-5 py-2 border border-t-0 border-l-0 border-r-0 border-gray-300 justify-start items-center'>
+          <div className='flex m-5 py-2 border rounded-[12px] px-2 justify-start items-center'>
             <div className='font-bold'>Username:&nbsp;</div>
             <div className='flex  w-full justify-between'>
               {
                 !editUserName ? <div>{userData.key.username}</div> :
                   <div className='flex'>
                     <input value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className='ring-1 ring-gray-300 rounded-[12px] p-1' placeholder='Enter new username' />
-                    <button 
-                    onClick={handleUserNameChange}
-                    className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
+                    <button
+                      onClick={handleUserNameChange}
+                      className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
                   </div>
               }
               <div onClick={() => setEditUserName(!editUserName)}>
@@ -135,19 +175,19 @@ export default function User() {
               </div>
             </div>
           </div>
-          <div className=' flex m-5 py-2 border border-t-0 border-l-0 border-r-0 border-gray-300 justify-start'>
+          <div className=' flex m-5 py-2 border rounded-[12px] px-2 justify-start'>
             <div className='font-bold'>Email:&nbsp;</div>
-            <div className='flex  w-full justify-between'>
+            <div className='flex w-full justify-between'>
               {
                 !editEmail ? <div>{userData.key.email}</div> :
                   <div className='flex'>
-                    <input 
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className='ring-1 ring-gray-300 rounded-[12px] p-1' placeholder='Enter new name' />
-                    <button 
-                    onClick={handleEmailChange}
-                    className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
+                    <input
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className='ring-1 ring-gray-300 rounded-[12px] p-1' placeholder='Enter new name' />
+                    <button
+                      onClick={handleEmailChange}
+                      className='bg-primary mx-2 ring-1 ring-gray-300  text-black rounded-[12px] p-1'>Save</button>
                   </div>
               }
               <button onClick={() => setEditEmail(!editEmail)}>
@@ -159,51 +199,62 @@ export default function User() {
               </button>
             </div>
           </div>
-          <div className=' flex m-5 py-2 border border-t-0 border-l-0 border-r-0 border-gray-300 justify-start'>
+          <div className=' flex m-5 py-2 border rounded-[12px] px-2 justify-start'>
             <div className='font-bold'>Password:&nbsp;</div>
             <button onClick={() => setShowChangePasswordModal(!showChangePasswordModal)} className='font-normal text-blue-500'>Change Password</button>
-          </div>
+          </div>   
           {showChangePasswordModal && (
-                  <div id="modal-backdrop" className="fixed inset-0 z-50 rounded flex items-center justify-center bg-black bg-opacity-70">
+            <div id="modal-backdrop" className="fixed inset-0 z-50 rounded flex items-center justify-center bg-black bg-opacity-70">
 
-                    <div className="bg-primary rounded-[12px] p-8 max-w-md w-full">
-                      <div className='flex justify-end text-black'>
-                        <button 
-                        onClick={() => setShowChangePasswordModal(false)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                          </svg>
+              <div className="bg-primary rounded-[12px] p-8 max-w-md w-full">
+                <div className='flex justify-end text-black'>
+                  <button
+                    onClick={() => setShowChangePasswordModal(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
 
-                        </button>
-                      </div>
-                      <h2 className="flex justify-center font-bold p-2 text-black my-5 border-b-2 border-gray-500">Change Password</h2>
-                      <div className='mb-2'>
-                        <div className="my-1 text-black">Enter Old Password</div>
-                        <input placeholder='*******' 
-                        value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} 
-                        className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
-                        <div className="my-1 text-black">Enter new Password</div>
-                        <input placeholder='*******' 
-                        value={newPassword} onChange={(e) => setNewPassword(e.target.value)} 
-                        className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
-                        <div className="my-1 text-black">Confirm new Password</div>
-                        <input placeholder='*******' 
-                        value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} 
-                        className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
-                      </div>
-                      
-                        
-                        <div className='flex justify-center'>
-                          <button 
-                          onClick={handleChangePassword} 
-                          className='py-2 px-4 outline-none  text-black w-full hover:bg-secondary rounded-[20px] hover:text-white'>Submit</button>
-                        </div>
-                    </div>
-                  </div>
-                )}
+                  </button>
+                </div>
+                <h2 className="flex justify-center text-2xl font-bold p-2 text-black my-5 border-b-2 border-gray-500">Change Password</h2>
+                <div className='mb-2'>
+                  <div className="my-1 text-black">Enter Old Password</div>
+                  <input placeholder='*******'
+                    value={oldPassword} onChange={(e) => setOldPassword(e.target.value)}
+                    className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
+                  <div className="my-1 text-black">Enter new Password</div>
+                  <input placeholder='*******'
+                    value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                    className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
+                  <div className="my-1 text-black">Confirm new Password</div>
+                  <input placeholder='*******'
+                    value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="text-black ring-1 ring-gray-300 p-2 bg-inherit  rounded w-full focus:outline-none " type="password" />
+                </div>
+
+
+                <div className='flex justify-center'>
+                  <button
+                    onClick={handleChangePassword}
+                    className='py-2 px-4 outline-none  text-black w-full hover:bg-secondary rounded-[20px] hover:text-white'>Submit</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+        <div>
+          {
+            error && <Error error={message} />
+          }
+        </div>
+        <div>{
+          success && <Success success={message} />
+        }</div>
       </div>
+
+      </>:<Loading/>
+    }
     </>
   )
 }
