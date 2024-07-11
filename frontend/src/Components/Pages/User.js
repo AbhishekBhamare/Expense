@@ -34,7 +34,7 @@ export default function User() {
   const handlePatchRequest = async (field1, id, field2, value, setEditField) => {
     try {
       setEditField(false);
-      const response = await axios.patch('https://expense-api-5ehm.onrender.com/user', { [field1]: id, [field2]: value });
+      const response = await axios.patch('https://expense-api-evxi.onrender.com/user', { [field1]: id, [field2]: value });
       setUserData(prev => ({ ...prev, key: { ...prev.key, [field2]: value } })); // Update userData state
     } catch (error) {
       setError(true);

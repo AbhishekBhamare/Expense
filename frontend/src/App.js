@@ -20,7 +20,7 @@ function App() {
 
   const getUserData = useCallback(async() => {
     if (id) {
-      await axios.get('https://expense-api-5ehm.onrender.com/user', {
+      await axios.get('https://expense-api-evxi.onrender.com/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });
