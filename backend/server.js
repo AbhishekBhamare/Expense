@@ -12,7 +12,7 @@ dotenv.config();
 
 const { Pool } = pg;
 const pool = new Pool({
-    connectionString:`postgres://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
+    connectionString:`postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
   ssl: {
     rejectUnauthorized: false // Only needed if your database requires SSL
   },
