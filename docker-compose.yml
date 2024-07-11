@@ -5,8 +5,7 @@ services:
     image: postgres:latest
     restart: always
     volumes:
-      - "./sql:/docker-entrypoint-initdb.d"
-    environment:
+      - "./init.sql:/docker-entrypoint-initdb.d/init.sql"  # Adjusted path to init.sql    environment:
       - POSTGRES_USER=${PGUSER}
       - POSTGRES_PASSWORD=${PGPASSWORD}
       - POSTGRES_DB=${PGDATABASE}
@@ -43,5 +42,3 @@ services:
       - backend
 
 
-volumes:
-      - ./pgdata:/var/lib/postgresql/data
