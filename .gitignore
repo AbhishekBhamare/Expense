@@ -6,7 +6,7 @@ frontend/node_modules/
 backend/.env
 
 # Ignore the docker-compose.yaml file (if desired)
-docker-compose.yml
+# docker-compose.yml
 
 # Ignore SQL initialization script (if desired)
 sql/init.sql
