@@ -34,7 +34,7 @@ export default function User() {
   const handlePatchRequest = async (field1, id, field2, value, setEditField) => {
     try {
       setEditField(false);
-      const response = await axios.patch('https://expense-9nyk.onrender.com/user', { [field1]: id, [field2]: value });
+      const response = await axios.patch('https://expense-api-5ehm.onrender.com/user', { [field1]: id, [field2]: value });
       setUserData(prev => ({ ...prev, key: { ...prev.key, [field2]: value } })); // Update userData state
     } catch (error) {
       setError(true);
@@ -73,7 +73,7 @@ export default function User() {
   
       try {
         setShowChangePasswordModal(false); // Set the edit state to false
-        await axios.patch('https://expense-9nyk.onrender.com/user', {
+        await axios.patch('https://expense-api-5ehm.onrender.com/user', {
           id: userData.key.id,
           oldPassword: oldPassword,
           newPassword: newPassword,

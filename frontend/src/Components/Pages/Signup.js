@@ -22,7 +22,7 @@ export default function Signup(props) {
       return;
     }
 
-    axios.post('https://expense-9nyk.onrender.com/signup', {
+    axios.post('https://expense-api-5ehm.onrender.com/signup', {
       name: name,
       username: username,
       email: email,
