@@ -15,12 +15,13 @@ const pool = new Pool({
     connectionString:`postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
   ssl: {
     rejectUnauthorized: false // Only needed if your database requires SSL
-  }
+  },
+  
     // user: process.env.PGUSER,
-    // host: process.env.PGHOST,
+    host: process.env.PGHOST,
     // database: process.env.PGDATABASE,
     // password: process.env.PGPASSWORD,
-    // port: process.env.PGPORT,
+    port: process.env.PGPORT,
 });
 
 
