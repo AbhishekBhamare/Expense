@@ -12,15 +12,10 @@ dotenv.config();
 
 const { Pool } = pg;
 const pool = new Pool({
-    connectionString:`postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`,
-  ssl: {
-    rejectUnauthorized: false // Only needed if your database requires SSL
-  },
-  
-    // user: process.env.PGUSER,
+    user: process.env.PGUSER,
     host: process.env.PGHOST,
-    // database: process.env.PGDATABASE,
-    // password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    password: process.env.PGPASSWORD,
     port: process.env.PGPORT,
 });
 
@@ -37,7 +32,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: 'https://expense-virid.vercel.app', // Specify the frontend URL
+    origin: 'http://localhost:3000', // Specify the frontend URL
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable cookies to be sent across domains
     optionsSuccessStatus: 204,
@@ -115,7 +110,6 @@ cron.schedule('0 0 1 * *', () => {
 
 
 app.post("/signup", async (req, res) => {
-    console.log('In SignUp')
     const userData = req.body;
     if (!(userData.name&&userData.username&&userData.email&&userData.password)){
         return res.status(400).send("All data fields are compulsory");
@@ -154,7 +148,6 @@ app.post("/signup", async (req, res) => {
 
 
 app.post('/login', async (req, res) => {
-    console.log('In Login')
     await calculateRemainingBudget();
     const { email, password } = req.body;
     if(!(email && password)){
@@ -568,6 +561,5 @@ app.delete('/budget', async (req, res) => {
 
 
 app.listen(Port, () => {
-    console.log('Backend server is running!')
     // console.log("Server connected to the port", Port);
 });

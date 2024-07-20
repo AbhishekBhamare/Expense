@@ -22,7 +22,7 @@ export default function Signup(props) {
       return;
     }
 
-    axios.post('https://expense-api-evxi.onrender.com/signup', {
+    axios.post('http://localhost:5000/signup', {
       name: name,
       username: username,
       email: email,

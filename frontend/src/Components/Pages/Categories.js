@@ -17,7 +17,7 @@ export default function Categories() {
   const saveCategory = (e) => {
     e.preventDefault();
     if (category && userData && userData.key && userData.key.id) {
-      axios.post('https://expense-api-evxi.onrender.com/categories', {
+      axios.post('http://localhost:5000/categories', {
         id: userData.key.id,
         category: category
 

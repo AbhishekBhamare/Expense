@@ -33,7 +33,7 @@ export default function Sidebar() {
 
   const getUserData = useCallback(() => {
     if (id) {
-      axios.get('https://expense-api-evxi.onrender.com/user', {
+      axios.get('http://localhost:5000/user', {
         params: { id: id }
       }).then((response) => {
         setUserData({ key: response.data });

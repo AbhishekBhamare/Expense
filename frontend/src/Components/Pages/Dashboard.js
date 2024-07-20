@@ -67,7 +67,7 @@ export default function Dashboard() {
   const fetchData = useCallback(async() => {
     if (userData && userData.key && userData.key.id) {
      await axios
-        .get('https://expense-api-evxi.onrender.com/dashboard', {
+        .get('http://localhost:5000/dashboard', {
           params: { id: userData.key.id },
         })
         .then((response) => {
@@ -89,7 +89,7 @@ export default function Dashboard() {
  
   const fetchIncome = useCallback(async() => {
     if (userData && userData.key && userData.key.id) {
-      await axios.get('https://expense-api-evxi.onrender.com/income', {
+      await axios.get('http://localhost:5000/income', {
         params: { id: userData.key.id },
       })
         .then((response) => {
@@ -184,7 +184,7 @@ export default function Dashboard() {
   const handleIncomeSubmit = async () => {
     try {
         if(!income){
-          await axios.post('https://expense-api-evxi.onrender.com/income', {
+          await axios.post('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
@@ -194,7 +194,7 @@ export default function Dashboard() {
           setShowModal(false);
         })
       }else{
-        await axios.patch('https://expense-api-evxi.onrender.com/income', {
+        await axios.patch('http://localhost:5000/income', {
           userId: userData.key.id,
           income: newIncome,
         }).then((response) => {
